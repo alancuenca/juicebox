@@ -35,7 +35,11 @@ async function dropTables() {
 async function createTables() {
   try {
     console.log("Starting to build tables...");
-
+//SERIAL starts at 1 and goes up with every addition
+//PRIMARY KEY the key given to the item
+//REFERENCES table name > users, column name > id
+//uppercase doesn't matter in postgres
+//" " is to name cammel case
     await client.query(`
         CREATE TABLE users (
           id SERIAL PRIMARY KEY,

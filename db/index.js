@@ -90,6 +90,20 @@ async function getUserById(userId) {
     }
 }
 
+async function getUserByUsername(username) {
+    try {
+      const { rows: [user] } = await client.query(`
+        SELECT *
+        FROM users
+        WHERE username=$1;
+      `, [username]);
+  
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 /**
 * POST Methods
 */
@@ -318,17 +332,32 @@ async function getPostsByTagName(tagName) {
     }
 }
 
+async function getAllTags() {
+    try {
+        const { rows: tags } = await client.query(`
+          SELECT * 
+          FROM tags;
+          `);
+
+        return tags;
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     client,
     createUser,
     updateUser,
     getAllUsers,
     getUserById,
+    getUserByUsername,
     createTags,
     createPost,
     updatePost,
     getAllPosts,
     getPostsByUser,
     addTagsToPost,
-    getPostsByTagName
+    getPostsByTagName,
+    getAllTags
 }

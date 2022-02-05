@@ -1,6 +1,9 @@
 const { Client } = require('pg'); // imports the pg module
 // supply the db name and location of the database
-const client = new Client('postgres://localhost:5432/juicebox-dev');
+const client = new Client({
+    connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/juicebox-dev',
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  });
 
 module.exports = {
     client,
@@ -115,7 +118,7 @@ async function createPost({
     tags = []
 }) {
     try {
-        const { rows: [post] } = await client.query(`
+        const { rows: [ post ] } = await client.query(`
         INSERT INTO posts("authorId", title, content) 
         VALUES($1, $2, $3)
         RETURNING *;
@@ -222,6 +225,13 @@ async function getPostById(postId) {
         WHERE id=$1;
       `, [postId]);
 
+      if (!post) {
+          throw {
+              name: "PostNotFoundError",
+              message: "Could not find a post with that postId"
+          };
+      }
+
         const { rows: tags } = await client.query(`
         SELECT tags.*
         FROM tags
@@ -280,6 +290,7 @@ async function createTags(tagList) {
       `, tagList);
         // return the rows from the query
         return tags;
+        
     } catch (error) {
         throw error;
     }
@@ -338,8 +349,9 @@ async function getAllTags() {
           SELECT * 
           FROM tags;
           `);
-
+console.log('tags: ', tags);
         return tags;
+        
     } catch (error) {
         throw error;
     }
@@ -357,6 +369,7 @@ module.exports = {
     updatePost,
     getAllPosts,
     getPostsByUser,
+    getPostById,
     addTagsToPost,
     getPostsByTagName,
     getAllTags

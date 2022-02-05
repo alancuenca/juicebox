@@ -35,11 +35,11 @@ async function dropTables() {
 async function createTables() {
   try {
     console.log("Starting to build tables...");
-//SERIAL starts at 1 and goes up with every addition
-//PRIMARY KEY the key given to the item
-//REFERENCES table name > users, column name > id
-//uppercase doesn't matter in postgres
-//" " is to name cammel case
+    //SERIAL starts at 1 and goes up with every addition
+    //PRIMARY KEY the key given to the item
+    //REFERENCES table name > users, column name > id
+    //uppercase doesn't matter in postgres
+    //" " is to name cammel case
     await client.query(`
         CREATE TABLE users (
           id SERIAL PRIMARY KEY,
@@ -156,6 +156,27 @@ async function createInitialTags() {
     console.log("Finished creating tags!");
   } catch (error) {
     console.log("Error creating tags!");
+    throw error;
+  }
+}
+
+async function createPost({
+  authorId,
+  title,
+  content,
+  tags = []
+}) {
+  try {
+    const { rows: [post] } = await client.query(`
+    INSERT INTO posts("authorId", title, content)
+    VALUES($1, $2, $3)
+    RETURNING *;
+    `, [authorId, title, content]);
+
+    const tagList = await createTags(tags);
+
+    return await addTagsToPost(post.id, tagList);
+  } catch (error) {
     throw error;
   }
 }
